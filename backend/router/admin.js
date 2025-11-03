@@ -3,6 +3,6 @@ const router = express.Router();
 const { saveUser } = require("../controllers/userController");
 
 // Route: POST /api/save-user
-router.post("/save-user", saveUser);
+router.post("/admin-save", saveUser);
 
 module.exports = router;
