@@ -3,6 +3,7 @@ import 'package:frontend/pages/signup.dart';
 import 'pages/homepage.dart';
 
 void main() {
+  print('');
   runApp(const MyApp());
 }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend/pages/loginpage.dart';
+import 'package:frontend/services/api_services.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -28,7 +29,6 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
-  // Email validation
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) {
       return 'Email is required';
@@ -40,7 +40,6 @@ class _RegisterPageState extends State<RegisterPage> {
     return null;
   }
 
-  // Phone validation
   String? _validatePhone(String? value) {
     if (value == null || value.isEmpty) {
       return 'Contact number is required';
@@ -51,7 +50,6 @@ class _RegisterPageState extends State<RegisterPage> {
     return null;
   }
 
-  // Password validation
   String? _validatePassword(String? value) {
     if (value == null || value.isEmpty) {
       return 'Password is required';
@@ -62,7 +60,6 @@ class _RegisterPageState extends State<RegisterPage> {
     return null;
   }
 
-  // Name validation
   String? _validateName(String? value) {
     if (value == null || value.isEmpty) {
       return 'Name is required';
@@ -79,35 +76,53 @@ class _RegisterPageState extends State<RegisterPage> {
         _isLoading = true;
       });
 
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 2));
+      final result = await ApiService.registerEmployee(
+        name: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        phoneNumber: _contactController.text.trim(),
+      );
 
       setState(() {
         _isLoading = false;
       });
 
       if (mounted) {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            title: const Text('Success! 🎉'),
-            content: Text(
-              'Welcome, ${_nameController.text}!\nYour account has been created.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  // Navigate to home or login
-                },
-                child: const Text('Continue'),
+        if (result['success']) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
               ),
-            ],
-          ),
-        );
+              title: const Text('Success! 🎉'),
+              content: Text(
+                'Welcome, ${_nameController.text}!\n${result['message']}',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    // Navigate to home page
+                    // Navigator.pushReplacementNamed(context, '/home');
+                  },
+                  child: const Text('Continue'),
+                ),
+              ],
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['message']),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          );
+        }
       }
     }
   }
@@ -127,8 +142,6 @@ class _RegisterPageState extends State<RegisterPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 20),
-
-                  // Header
                   const Text(
                     'Create Account',
                     style: TextStyle(
@@ -146,8 +159,6 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                   ),
                   const SizedBox(height: 40),
-
-                  // Name Field
                   TextFormField(
                     controller: _nameController,
                     validator: _validateName,
@@ -175,8 +186,6 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                   ),
                   const SizedBox(height: 20),
-
-                  // Email Field
                   TextFormField(
                     controller: _emailController,
                     validator: _validateEmail,
@@ -204,8 +213,6 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                   ),
                   const SizedBox(height: 20),
-
-                  // Contact Number Field
                   TextFormField(
                     controller: _contactController,
                     validator: _validatePhone,
@@ -237,8 +244,6 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                   ),
                   const SizedBox(height: 20),
-
-                  // Password Field
                   TextFormField(
                     controller: _passwordController,
                     validator: _validatePassword,
@@ -278,8 +283,6 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                   ),
                   const SizedBox(height: 32),
-
-                  // Register Button
                   SizedBox(
                     width: double.infinity,
                     height: 56,
@@ -312,8 +315,6 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                   ),
                   const SizedBox(height: 24),
-
-                  // Login Link
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -326,7 +327,6 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                       GestureDetector(
                         onTap: () {
-                          // Navigate to login page
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) => const LoginPage(),
