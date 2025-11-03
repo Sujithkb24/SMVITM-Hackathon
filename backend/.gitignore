@@ -1,2 +1,48 @@
+# Node modules
+node_modules/
+
+# Environment variables
 .env
-node_modules
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build / Dist files
+dist/
+build/
+coverage/
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+*.bak
+
+# IDE configs
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# npm & yarn lock files (optional, keep one)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# TypeScript build artifacts (if you use TS)
+*.tsbuildinfo
+
+# Env backups
+.env.local
+.env.development.local
+.env.production.local
+.env.test.local
