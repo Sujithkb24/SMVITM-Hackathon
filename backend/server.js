@@ -2,8 +2,8 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const { ClerkExpressRequireAuth } = require("@clerk/clerk-sdk-node");
-const connectDB = require("./config/db");
-const userRoutes = require("./routes/userRoutes");
+const connectDB = require("./db/db");
+const userRoutes = require("./router/admin");
 
 dotenv.config();
 const app = express();
