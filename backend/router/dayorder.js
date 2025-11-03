@@ -10,6 +10,7 @@ const {
   getTodaySummary,
 } = require("../controller/dayorder");
 const { protect } = require("../middleware/authMiddleware");
+const { getOrderByToken } = require("../utils/analytics-helper");
 
 const router = express.Router();
 
@@ -36,5 +37,7 @@ router.patch("/:id", protect, updateOrder);
 
 // Delete order
 router.delete("/:id", protect, deleteOrder);
+
+router.post("/get-token", getOrderByToken);
 
 module.exports = router;

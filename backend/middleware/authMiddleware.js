@@ -20,3 +20,4 @@ exports.protect = async (req, res, next) => {
 
   if (!token) return res.status(401).json({ message: "No token, authorization denied" });
 };
+
