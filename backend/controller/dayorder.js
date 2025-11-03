@@ -1,14 +1,17 @@
 const DayOrders = require("../models/employee/dayorder");
+const { updateAnalytics } = require("../utils/analytics-helper");
 
 // @desc Create or get today's order for an employee
 // @route POST /api/day-orders
 exports.createOrGetOrder = async (req, res) => {
   try {
     const { emp_id } = req.body;
-
+    
+    // Get start of today
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    // Check if order already exists for today
     let order = await DayOrders.findOne({
       emp_id,
       date: {
@@ -18,6 +21,7 @@ exports.createOrGetOrder = async (req, res) => {
     });
 
     if (!order) {
+      // Create new order for today
       order = await DayOrders.create({
         emp_id,
         date: today,
@@ -109,20 +113,30 @@ exports.toggleField = async (req, res) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    // Check if the field is already true
-    if (order[field] === true) {
-      return res.status(400).json({ 
-        message: `${field} is already set to true and cannot be changed until end of day`,
-        order 
-      });
-    }
+    // Store old value for analytics
+    const oldValue = order[field];
 
-    // Toggle the boolean value (can only go from false to true)
-    order[field] = true;
+    // Toggle the boolean value (both directions allowed)
+    order[field] = !order[field];
     await order.save();
 
+    // Update analytics for breakfast, lunch, and dinner
+    const changes = {};
+    if (field === 'ordered_breakfast') {
+      changes.breakfast = { old: oldValue, new: order[field] };
+    } else if (field === 'ordered_lunch') {
+      changes.lunch = { old: oldValue, new: order[field] };
+    } else if (field === 'served_dinner') {
+      changes.dinner = { old: oldValue, new: order[field] };
+    }
+
+    // Update analytics if relevant field changed
+    if (Object.keys(changes).length > 0) {
+      await updateAnalytics(changes);
+    }
+
     res.status(200).json({
-      message: `${field} set to true successfully`,
+      message: `${field} toggled to ${order[field]} successfully`,
       order,
     });
   } catch (error) {
@@ -149,25 +163,34 @@ exports.updateOrder = async (req, res) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    // Check for fields that are already true and trying to be changed to false
-    const lockedFields = [];
-    Object.keys(req.body).forEach((key) => {
-      if (allowedUpdates.includes(key)) {
-        if (order[key] === true && req.body[key] === false) {
-          lockedFields.push(key);
-        }
-      }
-    });
-
-    if (lockedFields.length > 0) {
-      return res.status(400).json({
-        message: "Cannot change fields that are already true until end of day",
-        lockedFields,
-        order,
-      });
+    // Track changes for analytics
+    const changes = {};
+    
+    if (req.body.ordered_breakfast !== undefined && 
+        order.ordered_breakfast !== req.body.ordered_breakfast) {
+      changes.breakfast = {
+        old: order.ordered_breakfast,
+        new: req.body.ordered_breakfast
+      };
     }
 
-    // Apply updates (only false to true allowed)
+    if (req.body.ordered_lunch !== undefined && 
+        order.ordered_lunch !== req.body.ordered_lunch) {
+      changes.lunch = {
+        old: order.ordered_lunch,
+        new: req.body.ordered_lunch
+      };
+    }
+
+    if (req.body.served_dinner !== undefined && 
+        order.served_dinner !== req.body.served_dinner) {
+      changes.dinner = {
+        old: order.served_dinner,
+        new: req.body.served_dinner
+      };
+    }
+
+    // Apply updates
     const updates = {};
     Object.keys(req.body).forEach((key) => {
       if (allowedUpdates.includes(key)) {
@@ -180,6 +203,11 @@ exports.updateOrder = async (req, res) => {
       updates,
       { new: true, runValidators: true }
     );
+
+    // Update analytics if any relevant fields changed
+    if (Object.keys(changes).length > 0) {
+      await updateAnalytics(changes);
+    }
 
     res.status(200).json(updatedOrder);
   } catch (error) {

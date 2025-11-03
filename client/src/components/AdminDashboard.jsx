@@ -1,9 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
 import {
   Home,
+  X,
+  Star,
+  Mail,
+  Phone,
+  Save,
   BarChart3,
   UtensilsCrossed,
+  RefreshCw,
   Package,
   Leaf,
   MessageSquare,
@@ -382,71 +389,247 @@ const AnalyticsPanel = () => (
   </div>
 );
 
-// Menu Panel
-const MenuPanel = () => (
-  <div className="space-y-6">
-    <div className="flex justify-between items-center">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-800">Menu Management</h1>
-        <p className="text-gray-600">Create and manage daily menus</p>
-      </div>
-      <button className="px-4 py-2 bg-teal-600 text-white rounded-lg flex items-center gap-2">
-        <Calendar size={18} />
-        Schedule Menu
-      </button>
-    </div>
+const MenuPanel = () => {
+  const [allItems, setAllItems] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [tomorrowDay, setTomorrowDay] = useState('');
 
-    <div className="bg-white rounded-xl p-6 shadow-sm">
-      <h2 className="text-lg font-semibold text-gray-800 mb-4">Tomorrow's Menu</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <MenuCard 
-          meal="Breakfast" 
-          time="8:00 AM - 10:00 AM"
-          items={["Poha", "Idli Sambar", "Coffee/Tea", "Fruits"]}
-          feedback={4.5}
-        />
-        <MenuCard 
-          meal="Lunch" 
-          time="12:30 PM - 2:30 PM"
-          items={["Paneer Butter Masala", "Dal Tadka", "Roti", "Rice", "Salad"]}
-          feedback={4.7}
-        />
-        <MenuCard 
-          meal="Snacks" 
-          time="4:00 PM - 5:00 PM"
-          items={["Samosa", "Sandwich", "Coffee/Tea"]}
-          feedback={4.2}
-        />
-        <MenuCard 
-          meal="Dinner" 
-          time="7:00 PM - 9:00 PM"
-          items={["Veg Biryani", "Raita", "Papad", "Dessert"]}
-          feedback={4.6}
-        />
-      </div>
-    </div>
+  const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div className="bg-white rounded-xl p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">Most Liked Dishes</h2>
-        <div className="space-y-3">
-          <FeedbackItem dish="Paneer Butter Masala" rating={4.8} trend="up" />
-          <FeedbackItem dish="Dal Tadka" rating={4.6} trend="up" />
-          <FeedbackItem dish="Veg Biryani" rating={4.5} trend="up" />
+  // Get tomorrow's day name
+  const getTomorrowDay = () => {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const dayIndex = tomorrow.getDay();
+    return daysOfWeek[dayIndex];
+  };
+
+  // Fetch all items on component mount
+  useEffect(() => {
+    const tomorrow = getTomorrowDay();
+    setTomorrowDay(tomorrow);
+    fetchAllItems();
+  }, []);
+
+  const fetchAllItems = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await axios.get('http://localhost:5000/api/items/allitems');
+      setAllItems(response.data.items || []);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to fetch menu items');
+      setAllItems([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Filter items for tomorrow's day
+  const tomorrowItems = allItems.filter(
+    item => item.serving_day.toLowerCase() === tomorrowDay.toLowerCase()
+  );
+
+  // Group items by type
+  const groupedMeals = {
+    breakfast: tomorrowItems.filter(item => item.type?.toLowerCase() === 'breakfast'),
+    lunch: tomorrowItems.filter(item => item.type?.toLowerCase() === 'lunch'),
+    snacks: tomorrowItems.filter(item => item.type?.toLowerCase() === 'snacks' || item.type?.toLowerCase() === 'snack'),
+    dinner: tomorrowItems.filter(item => item.type?.toLowerCase() === 'dinner')
+  };
+
+  const MenuCard = ({ meal, time, items, icon }) => (
+    <div className="rounded-xl p-6" style={{ background: '#1a1a1a', border: '1px solid rgba(139,92,246,0.12)' }}>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-teal-600/20 rounded-lg">
+            {icon}
+          </div>
+          <div>
+            <h3 className="font-semibold text-white text-lg">{meal}</h3>
+            <div className="flex items-center gap-1 text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>
+              <Clock size={14} />
+              <span>{time}</span>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-1 px-3 py-1 bg-yellow-500/20 rounded-full">
+          <Star size={14} className="text-yellow-500 fill-yellow-500" />
+          <span className="text-sm font-medium text-yellow-500">4.5</span>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">Needs Improvement</h2>
-        <div className="space-y-3">
-          <FeedbackItem dish="Mixed Veg Curry" rating={3.2} trend="down" />
-          <FeedbackItem dish="Gobi Masala" rating={3.4} trend="down" />
-          <FeedbackItem dish="Aloo Paratha" rating={3.6} trend="same" />
+      <div className="space-y-2">
+        {items.length > 0 ? (
+          items.map((item, index) => (
+            <div 
+              key={item._id || index} 
+              className="p-3 rounded-lg" 
+              style={{ background: '#0f0f0f' }}
+            >
+              <div className="font-medium" style={{ color: 'rgba(255,255,255,0.9)' }}>
+                {item.name}
+              </div>
+              {item.description && (
+                <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                  {item.description}
+                </p>
+              )}
+            </div>
+          ))
+        ) : (
+          <div className="text-center py-6" style={{ color: 'rgba(255,255,255,0.5)' }}>
+            <p className="text-sm">No items scheduled</p>
+          </div>
+        )}
+      </div>
+
+      <div className="mt-4 pt-4" style={{ borderTop: '1px solid rgba(139,92,246,0.12)' }}>
+        <div className="text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>
+          {items.length} {items.length === 1 ? 'item' : 'items'} available
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+
+  const getTodayDate = () => {
+    const today = new Date();
+    return today.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center flex-wrap gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Menu Management</h1>
+          <p style={{ color: 'rgba(255,255,255,0.7)' }}>
+            View tomorrow's menu schedule
+          </p>
+          <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
+            Today: {getTodayDate()}
+          </p>
+        </div>
+        <button 
+          onClick={fetchAllItems}
+          disabled={loading}
+          className="px-4 py-2 bg-teal-600 text-white rounded-lg flex items-center gap-2 hover:bg-teal-700 transition"
+        >
+          <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+          Refresh Menu
+        </button>
+      </div>
+
+      {/* Tomorrow's Day Banner */}
+      <div className="rounded-xl p-4" style={{ background: 'linear-gradient(135deg, rgba(20,184,166,0.2) 0%, rgba(59,130,246,0.2) 100%)', border: '1px solid rgba(139,92,246,0.3)' }}>
+        <div className="flex items-center gap-3">
+          <Calendar size={24} className="text-teal-400" />
+          <div>
+            <h3 className="font-semibold text-white text-lg">Tomorrow's Menu - {tomorrowDay}</h3>
+            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>
+              Total items: {tomorrowItems.length}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Loading State */}
+      {loading && (
+        <div className="text-center py-12">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
+          <p className="mt-4" style={{ color: 'rgba(255,255,255,0.7)' }}>Loading menu...</p>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && !loading && (
+        <div className="rounded-xl p-6 bg-red-900/20 border border-red-500/30">
+          <div className="flex items-center gap-3 text-red-400">
+            <AlertCircle size={20} />
+            <p>{error}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Menu Grid */}
+      {!loading && !error && (
+        <>
+          {tomorrowItems.length === 0 ? (
+            <div className="rounded-xl p-12 text-center" style={{ background: '#1a1a1a', border: '1px solid rgba(139,92,246,0.12)' }}>
+              <Calendar size={48} className="mx-auto mb-4 text-teal-500" />
+              <h3 className="text-xl font-semibold text-white mb-2">No menu scheduled</h3>
+              <p style={{ color: 'rgba(255,255,255,0.7)' }}>
+                There are no menu items scheduled for {tomorrowDay}
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="bg-white rounded-xl p-6 shadow-sm" style={{ background: '#0d0d0d' }}>
+                <h2 className="text-lg font-semibold text-white mb-6">Tomorrow's Menu</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <MenuCard 
+                    meal="Breakfast" 
+                    time="8:00 AM - 10:00 AM"
+                    items={groupedMeals.breakfast}
+                    icon={<UtensilsCrossed size={20} className="text-teal-400" />}
+                  />
+                  <MenuCard 
+                    meal="Lunch" 
+                    time="12:30 PM - 2:30 PM"
+                    items={groupedMeals.lunch}
+                    icon={<ChefHat size={20} className="text-teal-400" />}
+                  />
+                  <MenuCard 
+                    meal="Snacks" 
+                    time="4:00 PM - 5:00 PM"
+                    items={groupedMeals.snacks}
+                    icon={<Coffee size={20} className="text-teal-400" />}
+                  />
+                  <MenuCard 
+                    meal="Dinner" 
+                    time="7:00 PM - 9:00 PM"
+                    items={groupedMeals.dinner}
+                    icon={<Moon size={20} className="text-teal-400" />}
+                  />
+                </div>
+              </div>
+
+              {/* Summary Stats */}
+              <div className="rounded-xl p-6" style={{ background: '#1a1a1a', border: '1px solid rgba(139,92,246,0.12)' }}>
+                <h3 className="font-semibold text-white mb-4">Menu Summary</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="text-center p-4 rounded-lg" style={{ background: '#0f0f0f' }}>
+                    <div className="text-2xl font-bold text-teal-500">{groupedMeals.breakfast.length}</div>
+                    <div className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.7)' }}>Breakfast</div>
+                  </div>
+                  <div className="text-center p-4 rounded-lg" style={{ background: '#0f0f0f' }}>
+                    <div className="text-2xl font-bold text-teal-500">{groupedMeals.lunch.length}</div>
+                    <div className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.7)' }}>Lunch</div>
+                  </div>
+                  <div className="text-center p-4 rounded-lg" style={{ background: '#0f0f0f' }}>
+                    <div className="text-2xl font-bold text-teal-500">{groupedMeals.snacks.length}</div>
+                    <div className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.7)' }}>Snacks</div>
+                  </div>
+                  <div className="text-center p-4 rounded-lg" style={{ background: '#0f0f0f' }}>
+                    <div className="text-2xl font-bold text-teal-500">{groupedMeals.dinner.length}</div>
+                    <div className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.7)' }}>Dinner</div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </>
+      )}
+    </div>
+  );
+};
+
 
 // Inventory Panel
 const InventoryPanel = () => (
@@ -660,70 +843,173 @@ const FeedbackPanel = () => (
   </div>
 );
 
-// Users Panel
-const UsersPanel = () => (
-  <div className="space-y-6">
-    <div className="flex justify-between items-center">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-800">User Management</h1>
-        <p className="text-gray-600">Manage employee accounts and access</p>
-      </div>
-      <button className="px-4 py-2 bg-teal-600 text-white rounded-lg flex items-center gap-2">
-        <Users size={18} />
-        Add User
-      </button>
-    </div>
+const UsersPanel = () => {
+  const [employees, setEmployees] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <StatCard icon={<Users className="text-teal-600" />} label="Total Users" value="1,247" />
-      <StatCard icon={<CheckCircle className="text-green-600" />} label="Active Today" value="892" />
-      <StatCard icon={<User className="text-blue-600" />} label="Admins" value="8" />
-      <StatCard icon={<Clock className="text-orange-600" />} label="Inactive 7d+" value="34" />
-    </div>
+  // Fetch all employees on component mount
+  useEffect(() => {
+    fetchAllEmployees();
+  }, []);
 
+  const fetchAllEmployees = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await axios.get('http://localhost:5000/api/employees/allemployees');
+      setEmployees(response.data.employees || []);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to fetch employees');
+      setEmployees([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const StatCard = ({ icon, label, value }) => (
     <div className="bg-white rounded-xl p-6 shadow-sm">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold text-gray-800">Employee List</h2>
+      <div className="flex items-center gap-3">
+        <div className="p-3 bg-gray-50 rounded-lg">{icon}</div>
+        <div>
+          <p className="text-sm text-gray-600">{label}</p>
+          <p className="text-2xl font-bold text-gray-800">{value}</p>
+        </div>
+      </div>
+    </div>
+  );
+
+  const UserRow = ({ name, email, phoneNumber }) => (
+    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+      <div className="flex items-center gap-4 flex-1">
+        <div className="w-10 h-10 bg-teal-600 rounded-full flex items-center justify-center text-white font-semibold">
+          {name.charAt(0).toUpperCase()}
+        </div>
+        <div className="flex-1">
+          <h3 className="font-semibold text-gray-800">{name}</h3>
+          <div className="flex items-center gap-4 mt-1">
+            <div className="flex items-center gap-1 text-sm text-gray-600">
+              <Mail size={14} />
+              <span>{email}</span>
+            </div>
+            <div className="flex items-center gap-1 text-sm text-gray-600">
+              <Phone size={14} />
+              <span>{phoneNumber}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+          Active
+        </span>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">User Management</h1>
+          <p className="text-gray-600">Manage employee accounts and access</p>
+        </div>
         <div className="flex gap-2">
-          <button className="px-3 py-1 bg-gray-200 rounded-lg text-sm">All</button>
-          <button className="px-3 py-1 bg-gray-100 rounded-lg text-sm">Active</button>
-          <button className="px-3 py-1 bg-gray-100 rounded-lg text-sm">Inactive</button>
-        </div>
-      </div>
-      <div className="space-y-3">
-        <UserRow name="Amit Kumar" email="amit.kumar@company.com" dept="Engineering" status="active" meals={234} />
-        <UserRow name="Priya Sharma" email="priya.s@company.com" dept="Marketing" status="active" meals={198} />
-        <UserRow name="Rahul Singh" email="rahul.singh@company.com" dept="Sales" status="active" meals={187} />
-        <UserRow name="Sneha Patel" email="sneha.p@company.com" dept="HR" status="active" meals={156} />
-        <UserRow name="Vikram Gupta" email="vikram.g@company.com" dept="Finance" status="inactive" meals={142} />
-      </div>
-    </div>
-
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div className="bg-white rounded-xl p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">Department Participation</h2>
-        <div className="space-y-3">
-          <ParticipationBar dept="Engineering" users={450} active={387} />
-          <ParticipationBar dept="Sales" users={280} active={245} />
-          <ParticipationBar dept="Marketing" users={180} active={156} />
-          <ParticipationBar dept="HR" users={120} active={104} />
-          <ParticipationBar dept="Finance" users={217} active={189} />
+          <button 
+            onClick={fetchAllEmployees}
+            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg flex items-center gap-2 hover:bg-gray-300 transition"
+            disabled={loading}
+          >
+            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+            Refresh
+          </button>
+          <button className="px-4 py-2 bg-teal-600 text-white rounded-lg flex items-center gap-2 hover:bg-teal-700 transition">
+            <Users size={18} />
+            Add User
+          </button>
         </div>
       </div>
 
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard 
+          icon={<Users className="text-teal-600" />} 
+          label="Total Users" 
+          value={employees.length} 
+        />
+        <StatCard 
+          icon={<CheckCircle className="text-green-600" />} 
+          label="Active Today" 
+          value={employees.length} 
+        />
+        <StatCard 
+          icon={<User className="text-blue-600" />} 
+          label="Registered" 
+          value={employees.length} 
+        />
+        <StatCard 
+          icon={<Clock className="text-orange-600" />} 
+          label="Inactive 7d+" 
+          value="0" 
+        />
+      </div>
+
       <div className="bg-white rounded-xl p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">Top Participants</h2>
-        <div className="space-y-3">
-          <TopUser rank={1} name="Amit Kumar" meals={234} badge="gold" />
-          <TopUser rank={2} name="Priya Sharma" meals={198} badge="silver" />
-          <TopUser rank={3} name="Rahul Singh" meals={187} badge="bronze" />
-          <TopUser rank={4} name="Sneha Patel" meals={156} badge="none" />
-          <TopUser rank={5} name="Vikram Gupta" meals={142} badge="none" />
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold text-gray-800">
+            Employee List ({employees.length})
+          </h2>
+          <div className="flex gap-2">
+            <button className="px-3 py-1 bg-teal-600 text-white rounded-lg text-sm">All</button>
+            <button className="px-3 py-1 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 transition">Active</button>
+            <button className="px-3 py-1 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 transition">Inactive</button>
+          </div>
         </div>
+
+        {/* Loading State */}
+        {loading && (
+          <div className="text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
+            <p className="mt-4 text-gray-600">Loading employees...</p>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && !loading && (
+          <div className="rounded-lg p-6 bg-red-50 border border-red-200">
+            <div className="flex items-center gap-3 text-red-600">
+              <AlertCircle size={20} />
+              <p>{error}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Employee List */}
+        {!loading && !error && (
+          <>
+            {employees.length === 0 ? (
+              <div className="text-center py-12">
+                <Users size={48} className="mx-auto mb-4 text-gray-400" />
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">No employees found</h3>
+                <p className="text-gray-600">There are no registered employees in the system.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {employees.map((employee) => (
+                  <UserRow
+                    key={employee._id}
+                    name={employee.name}
+                    email={employee.email}
+                    phoneNumber={employee.phoneNumber}
+                  />
+                ))}
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 // QR Panel
 const QRPanel = () => (
@@ -799,166 +1085,436 @@ const QRPanel = () => (
   </div>
 );
 
-// Kitchen Panel
 const KitchenPanel = () => {
-  const [kitchen, setKitchen] = useState({
-    breakfast: ['Poha', 'Idli Sambar', 'Paratha', 'Coffee/Tea', 'Fruits'],
-    lunch: ['Paneer Butter Masala', 'Dal Tadka', 'Roti', 'Rice', 'Salad', 'Raita'],
-    snacks: ['Samosa', 'Sandwich', 'Coffee/Tea', 'Biscuits'],
-    dinner: ['Veg Biryani', 'Raita', 'Papad', 'Dessert', 'Roti', 'Dal']
-  });
-
-  const [newItem, setNewItem] = useState({
-    breakfast: '',
-    lunch: '',
-    snacks: '',
-    dinner: ''
-  });
-
+  const [selectedDay, setSelectedDay] = useState('Monday');
+  const [allItems, setAllItems] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [editingItem, setEditingItem] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
 
+  const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+  // Fetch all items on component mount
   useEffect(() => {
-    const saved = localStorage.getItem('kitchenItems');
-    if (saved) setKitchen(JSON.parse(saved));
+    fetchAllItems();
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem('kitchenItems', JSON.stringify(kitchen));
-  }, [kitchen]);
-
-  const addItem = (mealType) => {
-    const name = (newItem[mealType] || '').trim();
-    if (!name) return;
-    setKitchen(prev => ({ ...prev, [mealType]: [...prev[mealType], name] }));
-    setNewItem(prev => ({ ...prev, [mealType]: '' }));
+  const fetchAllItems = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await axios.get('http://localhost:5000/api/items/allitems');
+      setAllItems(response.data.items || []);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to fetch items');
+      setAllItems([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const deleteItem = (mealType, idx) => {
-    setKitchen(prev => ({ ...prev, [mealType]: prev[mealType].filter((_, i) => i !== idx) }));
+  // Handle edit item
+  const handleEdit = (item) => {
+    setEditingItem({
+      ...item,
+      originalName: item.name,
+      originalDescription: item.description
+    });
   };
 
-  const startEditing = (mealType, index, currentName) => {
-    setEditingItem({ mealType, index, name: currentName });
-  };
-
-  const saveEdit = () => {
+  // Handle save edit
+  const handleSaveEdit = async () => {
     if (!editingItem) return;
-    setKitchen(prev => ({
-      ...prev,
-      [editingItem.mealType]: prev[editingItem.mealType].map((it, i) =>
-        i === editingItem.index ? editingItem.name : it
-      )
-    }));
+
+    try {
+      const response = await axios.put(
+        `http://localhost:5000/api/items/update/${editingItem._id}`,
+        {
+          name: editingItem.name,
+          description: editingItem.description,
+          serving_day: editingItem.serving_day,
+          type: editingItem.type
+        }
+      );
+
+      // Update local state
+      setAllItems(prevItems =>
+        prevItems.map(item =>
+          item._id === editingItem._id ? response.data.item : item
+        )
+      );
+
+      setEditingItem(null);
+      alert('Item updated successfully!');
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to update item');
+    }
+  };
+
+  // Handle cancel edit
+  const handleCancelEdit = () => {
     setEditingItem(null);
   };
 
-  const cancelEdit = () => setEditingItem(null);
+  // Handle delete item
+  const handleDelete = async (itemId) => {
+    try {
+      await axios.delete(`http://localhost:5000/api/items/delete/${itemId}`);
 
-  const MealSection = ({ title, mealType, icon }) => (
+      // Update local state
+      setAllItems(prevItems => prevItems.filter(item => item._id !== itemId));
+      setDeleteConfirm(null);
+      alert('Item deleted successfully!');
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to delete item');
+    }
+  };
+
+  // Group items by serving_day using reduce
+  const groupByDay = (items) => {
+    return items.reduce((acc, item) => {
+      const day = item.serving_day;
+      if (!acc[day]) {
+        acc[day] = [];
+      }
+      acc[day].push(item);
+      return acc;
+    }, {});
+  };
+
+  const groupedByDay = groupByDay(allItems);
+  
+  // Get items for selected day
+  const itemsForSelectedDay = groupedByDay[selectedDay] || [];
+
+  // Group items by type for the selected day
+  const groupedMeals = {
+    breakfast: itemsForSelectedDay.filter(item => item.type?.toLowerCase() === 'breakfast'),
+    lunch: itemsForSelectedDay.filter(item => item.type?.toLowerCase() === 'lunch'),
+    snacks: itemsForSelectedDay.filter(item => item.type?.toLowerCase() === 'snacks' || item.type?.toLowerCase() === 'snack'),
+    dinner: itemsForSelectedDay.filter(item => item.type?.toLowerCase() === 'dinner')
+  };
+
+  const MealSection = ({ title, mealItems, icon }) => (
     <div className="rounded-xl p-6" style={{ background: '#1a1a1a', border: '1px solid rgba(139,92,246,0.12)' }}>
       <div className="flex items-center gap-3 mb-4">
         <div className="p-2 bg-teal-100 rounded-lg">{icon}</div>
         <div>
-          <h3 className="font-semibold text-gray-800 text-lg">{title}</h3>
-          <p className="text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>{kitchen[mealType].length} items</p>
-        </div>
-      </div>
- 
-      <div className="space-y-2 mb-4 max-h-60 overflow-y-auto">
-        {kitchen[mealType].map((item, index) => (
-          <div key={index} className="flex items-center justify-between p-3 rounded-lg transition" style={{ background: '#0f0f0f' }}>
-             {editingItem?.mealType === mealType && editingItem?.index === index ? (
-               <div className="flex items-center gap-2 flex-1">
-                 <input
-                   value={editingItem.name}
-                   onChange={(e) => setEditingItem(prev => ({ ...prev, name: e.target.value }))}
-                   className="flex-1 px-3 py-1 border border-[rgba(139,92,246,0.12)] rounded text-sm bg-[#1a1a1a] text-white"
-                   autoFocus
-                 />
-                 <button onClick={saveEdit} className="p-1 text-green-600 hover:bg-green-50 rounded">
-                   <CheckCircle size={16} />
-                 </button>
-                 <button onClick={cancelEdit} className="p-1 text-red-600 hover:bg-red-50 rounded">
-                   <Trash2 size={16} />
-                 </button>
-               </div>
-             ) : (
-               <>
-                <span style={{ color: 'rgba(255,255,255,0.9)' }}>{item}</span>
-                 <div className="flex items-center gap-2">
-                   <button onClick={() => startEditing(mealType, index, item)} className="p-1 text-blue-600 hover:bg-blue-50 rounded">
-                     <Edit3 size={16} />
-                   </button>
-                   <button onClick={() => deleteItem(mealType, index)} className="p-1 text-red-600 hover:bg-red-50 rounded">
-                     <Trash2 size={16} />
-                   </button>
-                 </div>
-               </>
-             )}
-           </div>
-         ))}
-         {kitchen[mealType].length === 0 && <div className="text-center py-4 text-gray-500 text-sm">No items added yet</div>}
-       </div>
- 
-       <div className="flex gap-2">
-         <input
-           value={newItem[mealType]}
-           onChange={(e) => setNewItem(prev => ({ ...prev, [mealType]: e.target.value }))}
-           onKeyDown={(e) => e.key === 'Enter' && addItem(mealType)}
-           placeholder={`Add ${title.toLowerCase()} item...`}
-           className="flex-1 px-4 py-2 border border-[rgba(139,92,246,0.12)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(217,70,239,0.16)] bg-[#151515] text-white placeholder:text-[rgba(255,255,255,0.5)]"
-         />
-         <button onClick={() => addItem(mealType)} disabled={!newItem[mealType].trim()} className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 disabled:bg-gray-300 flex items-center gap-2">
-           <Plus size={16} /> Add
-         </button>
-       </div>
-     </div>
-   );
-
-  return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Kitchen Items Management</h1>
-          <p className="text-gray-600">Manage available items for each meal category</p>
-        </div>
-        <div className="flex items-center gap-2 text-sm text-gray-500">
-          <CheckCircle size={16} className="text-green-500" />
-          Changes saved automatically
+          <h3 className="font-semibold text-white text-lg">{title}</h3>
+          <p className="text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>{mealItems.length} items</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <MealSection title="Breakfast" mealType="breakfast" icon={<UtensilsCrossed size={20} className="text-teal-600" />} />
-        <MealSection title="Lunch" mealType="lunch" icon={<ChefHat size={20} className="text-teal-600" />} />
-        <MealSection title="Snacks" mealType="snacks" icon={<Coffee size={20} className="text-teal-600" />} />
-        <MealSection title="Dinner" mealType="dinner" icon={<Moon size={20} className="text-teal-600" />} />
-      </div>
-
-      <div className="bg-gradient-to-br from-teal-50 to-blue-50 rounded-xl p-6 border border-teal-200">
-        <h3 className="font-semibold text-gray-800 mb-3">Kitchen Summary</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-teal-600">{kitchen.breakfast.length}</div>
-            <div className="text-sm text-gray-600">Breakfast Items</div>
+      <div className="space-y-2 max-h-60 overflow-y-auto">
+        {mealItems.length > 0 ? (
+          mealItems.map((item, index) => (
+            <div key={item._id || index} className="p-3 rounded-lg group hover:bg-[#151515] transition" style={{ background: '#0f0f0f' }}>
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1">
+                  <div className="font-medium" style={{ color: 'rgba(255,255,255,0.9)' }}>{item.name}</div>
+                  {item.description && (
+                    <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.6)' }}>{item.description}</p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition">
+                  <button
+                    onClick={() => handleEdit(item)}
+                    className="p-1.5 bg-blue-600/20 text-blue-400 rounded hover:bg-blue-600/30 transition"
+                    title="Edit item"
+                  >
+                    <Edit3 size={14} />
+                  </button>
+                  <button
+                    onClick={() => setDeleteConfirm(item)}
+                    className="p-1.5 bg-red-600/20 text-red-400 rounded hover:bg-red-600/30 transition"
+                    title="Delete item"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="text-center py-8" style={{ color: 'rgba(255,255,255,0.5)' }}>
+            <p className="text-sm">No {title.toLowerCase()} items for {selectedDay}</p>
           </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-teal-600">{kitchen.lunch.length}</div>
-            <div className="text-sm text-gray-600">Lunch Items</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-teal-600">{kitchen.snacks.length}</div>
-            <div className="text-sm text-gray-600">Snack Items</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-teal-600">{kitchen.dinner.length}</div>
-            <div className="text-sm text-gray-600">Dinner Items</div>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center flex-wrap gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Kitchen Menu - {selectedDay}</h1>
+          <p style={{ color: 'rgba(255,255,255,0.7)' }}>View and manage available items for each meal</p>
+        </div>
+        <button 
+          onClick={fetchAllItems} 
+          className="p-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition flex items-center gap-2"
+          disabled={loading}
+        >
+          <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
+          <span className="text-sm">Refresh</span>
+        </button>
+      </div>
+
+      {/* Day Selector with counts */}
+      <div className="flex gap-2 overflow-x-auto pb-2">
+        {daysOfWeek.map(day => {
+          const itemCount = groupedByDay[day]?.length || 0;
+          return (
+            <button
+              key={day}
+              onClick={() => setSelectedDay(day)}
+              className={`px-4 py-2 rounded-lg font-medium transition whitespace-nowrap flex flex-col items-center ${
+                selectedDay === day
+                  ? 'bg-teal-600 text-white'
+                  : 'bg-[#1a1a1a] text-[rgba(255,255,255,0.7)] hover:bg-[#252525]'
+              }`}
+              style={{ border: '1px solid rgba(139,92,246,0.12)' }}
+            >
+              <span>{day}</span>
+              <span className="text-xs opacity-70 mt-1">({itemCount})</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Loading State */}
+      {loading && (
+        <div className="text-center py-12">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
+          <p className="mt-4" style={{ color: 'rgba(255,255,255,0.7)' }}>Loading menu...</p>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && (
+        <div className="rounded-xl p-6 bg-red-900/20 border border-red-500/30">
+          <div className="flex items-center gap-3 text-red-400">
+            <AlertCircle size={20} />
+            <p>{error}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Meals Grid */}
+      {!loading && !error && (
+        <>
+          {itemsForSelectedDay.length === 0 ? (
+            <div className="rounded-xl p-12 text-center" style={{ background: '#1a1a1a', border: '1px solid rgba(139,92,246,0.12)' }}>
+              <Calendar size={48} className="mx-auto mb-4 text-teal-500" />
+              <h3 className="text-xl font-semibold text-white mb-2">No items available</h3>
+              <p style={{ color: 'rgba(255,255,255,0.7)' }}>
+                There are no menu items scheduled for {selectedDay}
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <MealSection 
+                  title="Breakfast" 
+                  mealItems={groupedMeals.breakfast} 
+                  icon={<UtensilsCrossed size={20} className="text-teal-600" />} 
+                />
+                <MealSection 
+                  title="Lunch" 
+                  mealItems={groupedMeals.lunch} 
+                  icon={<ChefHat size={20} className="text-teal-600" />} 
+                />
+                <MealSection 
+                  title="Snacks" 
+                  mealItems={groupedMeals.snacks} 
+                  icon={<Coffee size={20} className="text-teal-600" />} 
+                />
+                <MealSection 
+                  title="Dinner" 
+                  mealItems={groupedMeals.dinner} 
+                  icon={<Moon size={20} className="text-teal-600" />} 
+                />
+              </div>
+
+              {/* Summary Section */}
+              <div className="rounded-xl p-6" style={{ background: 'linear-gradient(135deg, rgba(20,184,166,0.1) 0%, rgba(59,130,246,0.1) 100%)', border: '1px solid rgba(139,92,246,0.12)' }}>
+                <h3 className="font-semibold text-white mb-3">{selectedDay} Menu Summary</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-teal-500">{groupedMeals.breakfast.length}</div>
+                    <div className="text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>Breakfast Items</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-teal-500">{groupedMeals.lunch.length}</div>
+                    <div className="text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>Lunch Items</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-teal-500">{groupedMeals.snacks.length}</div>
+                    <div className="text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>Snack Items</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-teal-500">{groupedMeals.dinner.length}</div>
+                    <div className="text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>Dinner Items</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Weekly Overview */}
+              <div className="rounded-xl p-6" style={{ background: '#1a1a1a', border: '1px solid rgba(139,92,246,0.12)' }}>
+                <h3 className="font-semibold text-white mb-3">Weekly Overview</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+                  {daysOfWeek.map(day => {
+                    const count = groupedByDay[day]?.length || 0;
+                    return (
+                      <div key={day} className="text-center p-3 rounded-lg" style={{ background: '#0f0f0f' }}>
+                        <div className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.9)' }}>{day.slice(0, 3)}</div>
+                        <div className="text-xl font-bold text-teal-500 mt-1">{count}</div>
+                        <div className="text-xs" style={{ color: 'rgba(255,255,255,0.6)' }}>items</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </>
+          )}
+        </>
+      )}
+
+      {/* Edit Modal */}
+      {editingItem && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="rounded-xl p-6 max-w-md w-full" style={{ background: '#1a1a1a', border: '1px solid rgba(139,92,246,0.3)' }}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-white">Edit Item</h3>
+              <button
+                onClick={handleCancelEdit}
+                className="p-1 text-gray-400 hover:text-white transition"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: 'rgba(255,255,255,0.9)' }}>
+                  Item Name
+                </label>
+                <input
+                  type="text"
+                  value={editingItem.name}
+                  onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })}
+                  className="w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  style={{ 
+                    background: '#0f0f0f', 
+                    border: '1px solid rgba(139,92,246,0.12)',
+                    color: 'white'
+                  }}
+                  placeholder="Enter item name"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: 'rgba(255,255,255,0.9)' }}>
+                  Description
+                </label>
+                <textarea
+                  value={editingItem.description || ''}
+                  onChange={(e) => setEditingItem({ ...editingItem, description: e.target.value })}
+                  className="w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none"
+                  style={{ 
+                    background: '#0f0f0f', 
+                    border: '1px solid rgba(139,92,246,0.12)',
+                    color: 'white'
+                  }}
+                  rows="3"
+                  placeholder="Enter description (optional)"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium mb-2" style={{ color: 'rgba(255,255,255,0.9)' }}>
+                    Day
+                  </label>
+                  <div className="px-4 py-2 rounded-lg" style={{ background: '#0f0f0f', border: '1px solid rgba(139,92,246,0.12)' }}>
+                    <span style={{ color: 'rgba(255,255,255,0.6)' }}>{editingItem.serving_day}</span>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2" style={{ color: 'rgba(255,255,255,0.9)' }}>
+                    Type
+                  </label>
+                  <div className="px-4 py-2 rounded-lg capitalize" style={{ background: '#0f0f0f', border: '1px solid rgba(139,92,246,0.12)' }}>
+                    <span style={{ color: 'rgba(255,255,255,0.6)' }}>{editingItem.type}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={handleSaveEdit}
+                  className="flex-1 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition flex items-center justify-center gap-2"
+                  disabled={!editingItem.name.trim()}
+                >
+                  <Save size={16} />
+                  Save Changes
+                </button>
+                <button
+                  onClick={handleCancelEdit}
+                  className="flex-1 px-4 py-2 rounded-lg hover:bg-[#252525] transition"
+                  style={{ background: '#0f0f0f', border: '1px solid rgba(139,92,246,0.12)', color: 'white' }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="rounded-xl p-6 max-w-md w-full" style={{ background: '#1a1a1a', border: '1px solid rgba(239,68,68,0.3)' }}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-red-600/20 rounded-lg">
+                <AlertCircle size={24} className="text-red-400" />
+              </div>
+              <h3 className="text-xl font-bold text-white">Delete Item</h3>
+            </div>
+
+            <p className="mb-2" style={{ color: 'rgba(255,255,255,0.9)' }}>
+              Are you sure you want to delete <strong>{deleteConfirm.name}</strong>?
+            </p>
+            <p className="text-sm mb-6" style={{ color: 'rgba(255,255,255,0.6)' }}>
+              This action cannot be undone.
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => handleDelete(deleteConfirm._id)}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition flex items-center justify-center gap-2"
+              >
+                <Trash2 size={16} />
+                Delete
+              </button>
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className="flex-1 px-4 py-2 rounded-lg hover:bg-[#252525] transition"
+                style={{ background: '#0f0f0f', border: '1px solid rgba(139,92,246,0.12)', color: 'white' }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
+
 
 
 // Settings Panel
