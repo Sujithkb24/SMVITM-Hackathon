@@ -7,26 +7,22 @@ const itemRoutes = require("./router/item-router");
 const adminRoutes = require("./router/admin-router");
 const dayOrdersRoutes = require("./router/dayorder")
 const analyticsRouter = require("./router/analytics")
-
+const telegramRouter = require("./router/telegram-route")
 dotenv.config();
-connectDB();
-
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
-
-
-
+connectDB();
 app.use("/api/items", itemRoutes);
 app.use("/api/admins", adminRoutes);
 app.use("/api/analytics", analyticsRouter);
 app.use("/api/employees", employeeRoutes);
 app.use("/api/day-orders", dayOrdersRoutes);
+app.use("/api/telegram",telegramRouter );
 // Connect to MongoDB
-connectDB();
+
 // Server
 
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

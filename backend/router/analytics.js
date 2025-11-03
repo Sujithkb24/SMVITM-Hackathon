@@ -16,7 +16,7 @@ const router = express.Router();
 router.get("/summary", protect, getAnalyticsSummary);
 
 // Get today's analytics
-router.get("/today", protect, getTodayAnalytics);
+router.get("/today", getTodayAnalytics);
 
 // Get analytics by specific date
 router.get("/date/:date", protect, getAnalyticsByDate);
