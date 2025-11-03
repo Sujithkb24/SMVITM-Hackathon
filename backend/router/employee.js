@@ -11,6 +11,7 @@ const router = express.Router();
 
 router.post("/register", registerEmployee);
 router.post("/login", loginEmployee);
-router.get("/profile", getEmployeeProfile);
+router.get("/profile", protect,getEmployeeProfile);
 router.post("/logout", protect, logoutEmployee);
+
 module.exports = router;

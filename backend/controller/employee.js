@@ -12,7 +12,6 @@ const generateToken = (id) => {
 exports.registerEmployee = async (req, res) => {
   try {
     const { name, email, password, phoneNumber } = req.body;
-
     const existing = await Employee.findOne({ email });
     if (existing) return res.status(400).json({ message: "Employee already exists" });
 
@@ -75,6 +74,7 @@ exports.loginEmployee = async (req, res) => {
 // @route GET /api/employees/profile
 exports.getEmployeeProfile = async (req, res) => {
   try {
+    console.log(req.user.id);
     const employee = await Employee.findById(req.user.id).select("-password");
     res.json(employee);
   } catch (error) {
