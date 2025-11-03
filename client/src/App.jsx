@@ -4,6 +4,7 @@ import Home from "./components/home";
 import AdminHomepage from "./components/AdminHomepage";
 import Dashboard from "./components/AdminDashboard";
 import AddItemsPage from "./components/AddItemsPage";
+import Loginadmin from "./components/Loginpage";
 
 function App() {
   return (
@@ -13,8 +14,9 @@ function App() {
         {/* 👇 separate pages */}
         <Route path="/sign-in/*" element={<SignIn routing="path" path="/sign-in" />} />
         <Route path="/sign-up/*" element={<SignUp routing="path" path="/sign-up" />} />
+        <Route path="/loginadmin" element={<Loginadmin />} />
         <Route path="/Additems" element={<AddItemsPage />} />
-         <Route path="/dashboard" element={<Dashboard />} />
+         <Route path="admin/dashboard" element={<Dashboard />} />
         {/* 👇 home or protected page */}
         <Route path="/" element={<AdminHomepage />} />
       </Routes>

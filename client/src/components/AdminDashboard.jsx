@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 import {
   Home,
@@ -41,6 +42,13 @@ import {
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('home');
   const [mobileOpen, setMobileOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    // clear auth (adjust key if you use a different key)
+    try { localStorage.removeItem('adminToken'); } catch (e) { /* ignore */ }
+    navigate('/');
+  };
  
   const renderContent = () => {
     switch(activeTab) {
@@ -118,7 +126,7 @@ const Dashboard = () => {
            </div>
  
            <div className="mt-auto">
-            <button className="w-full py-3 px-6 rounded-full font-medium flex items-center justify-center gap-2 transition" style={{ background: 'linear-gradient(45deg,#d946ef 30%,#8b5cf6 90%)', color: '#fff', boxShadow: '0 8px 30px rgba(217,70,239,0.12)' }}>
+            <button onClick={handleLogout} className="w-full py-3 px-6 rounded-full font-medium flex items-center justify-center gap-2 transition" style={{ background: 'linear-gradient(45deg,#d946ef 30%,#8b5cf6 90%)', color: '#fff', boxShadow: '0 8px 30px rgba(217,70,239,0.12)' }}>
               <LogOut size={18} />
               Logout
             </button>
@@ -155,7 +163,7 @@ const Dashboard = () => {
 </nav>
  
                <div className="mt-auto">
-                 <button className="w-full bg-white text-teal-700 py-3 px-6 rounded-full font-medium flex items-center justify-center gap-2 hover:bg-teal-50 transition mt-6">
+                 <button onClick={() => { setMobileOpen(false); handleLogout(); }} className="w-full bg-white text-teal-700 py-3 px-6 rounded-full font-medium flex items-center justify-center gap-2 hover:bg-teal-50 transition mt-6">
                    <LogOut size={18} />
                    Logout
                  </button>
@@ -886,7 +894,7 @@ const UsersPanel = () => {
           {name.charAt(0).toUpperCase()}
         </div>
         <div className="flex-1">
-          <h3 className="font-semibold text-gray-800">{name}</h3>
+          <div className="font-medium text-gray-800">{name}</div>
           <div className="flex items-center gap-4 mt-1">
             <div className="flex items-center gap-1 text-sm text-gray-600">
               <Mail size={14} />
@@ -1030,14 +1038,14 @@ const QRPanel = () => (
       <div className="bg-white rounded-xl p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-800 mb-4">Live Scan Activity</h2>
         <div className="space-y-2 max-h-96 overflow-y-auto">
-          <ScanLog time="2 min ago" name="Amit Kumar" meal="Lunch" status="verified" qr="QR-45892" />
-          <ScanLog time="3 min ago" name="Priya Sharma" meal="Lunch" status="verified" qr="QR-45891" />
-          <ScanLog time="5 min ago" name="Rahul Singh" meal="Lunch" status="verified" qr="QR-45890" />
-          <ScanLog time="7 min ago" name="Unknown User" meal="Lunch" status="duplicate" qr="QR-45889" />
-          <ScanLog time="9 min ago" name="Sneha Patel" meal="Lunch" status="verified" qr="QR-45888" />
-          <ScanLog time="11 min ago" name="Vikram Gupta" meal="Lunch" status="verified" qr="QR-45887" />
-          <ScanLog time="13 min ago" name="Anjali Desai" meal="Lunch" status="verified" qr="QR-45886" />
-          <ScanLog time="15 min ago" name="Rohan Mehta" meal="Lunch" status="verified" qr="QR-45885" />
+          <ScanLog time="2 min ago" name="Amit Kumar" meal="Lunch" status="verified" />
+          <ScanLog time="3 min ago" name="Priya Sharma" meal="Lunch" status="verified" />
+          <ScanLog time="5 min ago" name="Rahul Singh" meal="Lunch" status="verified" />
+          <ScanLog time="7 min ago" name="Unknown User" meal="Lunch" status="duplicate" />
+          <ScanLog time="9 min ago" name="Sneha Patel" meal="Lunch" status="verified" />
+          <ScanLog time="11 min ago" name="Vikram Gupta" meal="Lunch" status="verified" />
+          <ScanLog time="13 min ago" name="Anjali Desai" meal="Lunch" status="verified" />
+          <ScanLog time="15 min ago" name="Rohan Mehta" meal="Lunch" status="verified" />
         </div>
       </div>
 
@@ -1698,7 +1706,9 @@ const ScanActivity = ({ time, name, meal, status }) => (
         <div className="text-xs text-gray-500">{meal} • {time}</div>
       </div>
     </div>
-    <span className={`text-xs px-2 py-1 rounded-full ${status === 'verified' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+    <span className={`text-xs px-2 py-1 rounded-full ${
+      status === 'verified' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+    }`}>
       {status}
     </span>
   </div>
