@@ -5,4 +5,5 @@ const { saveUser } = require("../controller/user");
 // Route: POST /api/save-user
 router.post("/admin-save", saveUser);
 
+
 module.exports = router;
