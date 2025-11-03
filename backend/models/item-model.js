@@ -6,6 +6,7 @@ const itemSchema = new Schema(
     {
         name: { type: String, required: true, trim: true},
         serving_day: { type: String, required: true, trim: true },
+        type: { type: String, required: true },
         description: { type: String, trim: true }
     },
     { timestamps: true }

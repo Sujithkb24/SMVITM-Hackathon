@@ -6,7 +6,8 @@ const OrderFormCompact = ({ onSubmit }) => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    dateOfServing: ''
+    dateOfServing: '',
+    type: '' // added field
   });
   
   const [status, setStatus] = useState({ type: '', message: '' });
@@ -21,7 +22,7 @@ const OrderFormCompact = ({ onSubmit }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.description || !formData.dateOfServing) {
+    if (!formData.name || !formData.description || !formData.dateOfServing || !formData.type) {
       setStatus({ type: 'error', message: 'Please fill in all fields' });
       return;
     }
@@ -39,7 +40,8 @@ const OrderFormCompact = ({ onSubmit }) => {
         body: JSON.stringify({
           name: formData.name,
           description: formData.description,
-          serving_day: formData.dateOfServing
+          serving_day: formData.dateOfServing,
+          type: formData.type // send type
         })
       });
 
@@ -50,7 +52,7 @@ const OrderFormCompact = ({ onSubmit }) => {
           type: 'success', 
           message: data.message || 'Item added successfully!' 
         });
-        setFormData({ name: '', description: '', dateOfServing: '' });
+        setFormData({ name: '', description: '', dateOfServing: '', type: '' }); // reset type as well
         
         // Call parent's onSubmit if provided
         if (onSubmit) {
@@ -136,6 +138,28 @@ const OrderFormCompact = ({ onSubmit }) => {
         </div>
       </div>
 
+      {/* Type dropdown (new field) */}
+      <div className="mb-4">
+        <label className="block text-sm text-purple-200 mb-2">Type</label>
+        <div className="relative">
+          <select
+            name="type"
+            value={formData.type}
+            onChange={handleChange}
+            required
+            disabled={isLoading}
+            className="w-full appearance-none pl-4 pr-10 py-2.5 bg-transparent border border-purple-700/30 rounded-lg text-white placeholder:text-purple-200/40 focus:outline-none focus:ring-2 focus:ring-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <option value="" disabled>Choose type</option>
+            <option value="Breakfast">Breakfast</option>
+            <option value="Lunch">Lunch</option>
+            <option value="Snacks">Snacks</option>
+            
+          </select>
+          <div className="pointer-events-none absolute right-3 top-3 text-purple-300">▾</div>
+        </div>
+      </div>
+
       <div className="flex gap-3 items-center">
         <button
           type="submit"
@@ -158,7 +182,7 @@ const OrderFormCompact = ({ onSubmit }) => {
         <button
           type="button"
           onClick={() => {
-            setFormData({ name: '', description: '', dateOfServing: '' });
+            setFormData({ name: '', description: '', dateOfServing: '', type: '' });
             setStatus({ type: '', message: '' });
           }}
           disabled={isLoading}
