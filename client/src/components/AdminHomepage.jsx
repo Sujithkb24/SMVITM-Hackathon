@@ -1,507 +1,523 @@
-// App.js
-import React, { useState } from 'react';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
-  AppBar,
-  Toolbar,
-  Typography,
-  Button,
-  IconButton,
-  Drawer,
-  List,
-  ListItem,
-  ListItemText,
-  Box,
-  Container,
-  Grid,
-  Card,
-  CardContent,
-  useMediaQuery,
-  useScrollTrigger
-} from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
-import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
-import SpeedIcon from '@mui/icons-material/Speed';
-import LocalOfferIcon from '@mui/icons-material/LocalOffer';
-import SecurityIcon from '@mui/icons-material/Security';
-import Spline from '@splinetool/react-spline';
+  Menu,
+  X,
+  ArrowDown,
+  BarChart3,
+  Leaf,
+  TrendingUp,
+  Github,
+  Twitter,
+  Linkedin,
+  Mail,
+} from 'lucide-react';
+import SplitText from './Splittext';
+import Orb from './Orb';
 
-// Create dark theme
-const darkTheme = createTheme({
-  palette: {
-    mode: 'dark',
-    primary: {
-      main: '#d946ef', // Purple/magenta accent color
-    },
-    secondary: {
-      main: '#8b5cf6',
-    },
-    background: {
-      default: '#0a0a0a',
-      paper: '#1a1a1a',
-    },
-  },
-  typography: {
-    fontFamily: '"Inter", "Roboto", "Arial", sans-serif',
-  },
-});
+const AdminHomePage = () => {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-function AdminHomepage() {
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const isMobile = useMediaQuery(darkTheme.breakpoints.down('md'));
-  const trigger = useScrollTrigger({
-    disableHysteresis: true,
-    threshold: 100,
-  });
-
-  const toggleDrawer = (open) => (event) => {
-    if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
-      return;
-    }
-    setDrawerOpen(open);
+  const handleAnimationComplete = () => {
+    // called when all letters finish animating
+    // keep short for debugging or hook additional logic
+    console.log('Heading animation complete');
   };
 
-  const menuItems = ['Home', 'Company', 'Features', 'About'];
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
-  // Navbar component
-  const Navbar = () => (
-    <AppBar
-      position="fixed"
-      sx={{
-        zIndex: 1300, // ensure AppBar sits above content
-        backgroundColor: trigger ? 'rgba(10, 10, 10, 0.95)' : 'transparent',
-        backdropFilter: trigger ? 'blur(10px)' : 'none',
-        boxShadow: trigger ? 3 : 0,
-        transition: 'all 0.3s ease-in-out',
-      }}
-    >
-      <Toolbar sx={{ justifyContent: 'space-between' }}>
-        <Typography
-          variant="h5"
-          component="div"
-          sx={{
-            fontWeight: 700,
-            letterSpacing: '0.05em',
-            background: 'linear-gradient(45deg, #d946ef 30%, #8b5cf6 90%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-          }}
-        >
-          Karmic Canteen
-        </Typography>
+  const scrollToSection = (sectionId) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+      setIsMobileMenuOpen(false);
+    }
+  };
 
-        {isMobile ? (
-          <IconButton
-            edge="end"
-            color="inherit"
-            aria-label="menu"
-            onClick={toggleDrawer(true)}
-          >
-            <MenuIcon />
-          </IconButton>
-        ) : (
-          <Box sx={{ display: 'flex', gap: 3 }}>
-            {menuItems.map((item) => (
-              <Button
-                key={item}
-                color="inherit"
-                sx={{
-                  textTransform: 'capitalize',
-                  fontSize: '1rem',
-                  '&:hover': { color: '#d946ef' },
-                }}
-              >
-                {item}
-              </Button>
-            ))}
-            <Button
-              variant="contained"
-              sx={{
-                backgroundColor: '#d946ef',
-                textTransform: 'capitalize',
-                borderRadius: '8px',
-                px: 3,
-                '&:hover': { backgroundColor: '#c026d3' },
-              }}
-            >
-              Sign Up
-            </Button>
-          </Box>
-        )}
-      </Toolbar>
-    </AppBar>
-  );
+  const scrollToFeatures = () => scrollToSection('about');
 
-  // Sidebar Drawer
-  const SideDrawer = () => (
-    <Drawer anchor="right" open={drawerOpen} onClose={toggleDrawer(false)}>
-      <Box
-        sx={{
-          width: 250,
-          backgroundColor: '#1a1a1a',
-          height: '100%',
-          pt: 2,
-        }}
-        role="presentation"
-        onClick={toggleDrawer(false)}
-        onKeyDown={toggleDrawer(false)}
+  const features = [
+    {
+      icon: <BarChart3 size={40} />,
+      title: 'Overview',
+      description:
+        'Get real-time insights into canteen operations with comprehensive dashboards and analytics that help you make data-driven decisions.',
+      gradient: 'from-[#d946ef] to-[#8b5cf6]',
+    },
+    {
+      icon: <TrendingUp size={40} />,
+      title: 'Meal Analytics',
+      description:
+        'Track consumption patterns, predict demand, and optimize inventory management with advanced AI-powered meal analytics.',
+      gradient: 'from-[#8b5cf6] to-[#d946ef]',
+    },
+    {
+      icon: <Leaf size={40} />,
+      title: 'Green Score Tracker',
+      description:
+        'Monitor your environmental impact with our sustainability metrics. Reduce waste, track carbon footprint, and achieve green goals.',
+      gradient: 'from-[#d946ef] to-[#8b5cf6]',
+    },
+  ];
+
+  const currentYear = new Date().getFullYear();
+
+  return (
+    <div className="bg-[#0a0a0a] text-white">
+      {/* ---------- NAVBAR ---------- */}
+      <nav
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          isScrolled
+            ? 'bg-[#0a0a0a]/80 backdrop-blur-xl border-b border-[rgba(139,92,246,0.3)] shadow-lg shadow-[#d946ef]/10'
+            : 'bg-transparent'
+        }`}
       >
-        <List>
-          {menuItems.map((item) => (
-            <ListItem button key={item}>
-              <ListItemText primary={item} />
-            </ListItem>
-          ))}
-          <ListItem>
-            <Button
-              variant="contained"
-              fullWidth
-              sx={{
-                backgroundColor: '#d946ef',
-                '&:hover': { backgroundColor: '#c026d3' },
-              }}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <Link
+              to="/"
+              className="text-2xl font-bold bg-gradient-to-r from-[#d946ef] to-[#8b5cf6] bg-clip-text text-transparent hover:scale-105 transition-transform duration-300"
             >
-              Sign Up
-            </Button>
-          </ListItem>
-        </List>
-      </Box>
-    </Drawer>
-  );
+              Karmic Canteen
+            </Link>
 
-  // Hero Section (Tailwind-based, responsive: text left, spline right)
-  const HeroSection = () => (
-    <section
-      className="pt-[64px] md:pt-0 bg-[radial-gradient(circle_at_20%_50%,rgba(217,70,239,0.08)_0%,transparent_50%)]"
-    >
-      <div className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row items-center md:items-center gap-8 md:gap-12 min-h-[calc(100vh-64px)]">
-          {/* left: text (always left on md+, centered on xs) */}
-          <div className="w-full md:w-1/2 text-center md:text-left md:pr-8 flex flex-col justify-center">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold leading-tight mb-4">
-              Let's Explore Three-Dimensional visual
-            </h1>
-            <p className="text-sm sm:text-base md:text-lg text-gray-300 mb-6">
-              With virtual technology you can see the digital world feel more real and you can play the game with a new style.
-            </p>
-
-            <div className="flex flex-wrap justify-center md:justify-start gap-4">
-              <button className="bg-pink-600 hover:bg-pink-500 text-white px-6 py-3 rounded-md font-medium transition">
-                Get It Now
+            {/* Desktop Nav */}
+            <div className="hidden md:flex items-center space-x-8">
+              <button
+                onClick={() => scrollToSection('home')}
+                className="text-white/70 hover:text-white transition-all duration-300"
+              >
+                Home
               </button>
-              <button className="border border-white/30 hover:border-pink-500 text-white px-6 py-3 rounded-md font-medium transition bg-transparent">
-                Explore Device
+              <button
+                onClick={() => scrollToSection('about')}
+                className="text-white/70 hover:text-white transition-all duration-300"
+              >
+                About
               </button>
+              <Link
+                to="/dashboard"
+                className="text-white/70 hover:text-white transition-all duration-300"
+              >
+                Dashboard
+              </Link>
+              <Link
+                to="/loginadmin"
+                className="px-6 py-2 bg-gradient-to-r from-[#d946ef] to-[#8b5cf6] text-white rounded-full font-medium hover:shadow-[0_0_20px_rgba(217,70,239,0.6)] hover:scale-105 transition-all duration-300"
+              >
+                Login
+              </Link>
             </div>
 
-            <div className="flex items-center gap-4 mt-6 justify-center md:justify-start">
-              <div className="flex -ml-2">
-                {[1, 2, 3, 4].map((i) => (
-                  <div
-                    key={i}
-                    className="w-10 h-10 rounded-full bg-pink-600 -ml-2 border-2 border-black"
-                  />
-                ))}
-              </div>
-              <span className="text-gray-400">400k people online</span>
-            </div>
-          </div>
-
-          {/* right: spline on md+, decorative box on small */}
-          <div className="w-full md:w-1/2 flex justify-center items-center">
-            {/* desktop spline (renders only on md+) */}
-            <div className="hidden md:block w-full max-w-[920px] h-[640px] rounded-lg overflow-hidden self-center">
-              <Spline
-                scene="https://prod.spline.design/lFMyrwAVYZ0QCMpR/scene.splinecode"
-                style={{ width: '100%', height: '100%' }}
-              />
-            </div>
-
-            {/* mobile fallback decorative box */}
-            <div className="md:hidden w-full h-[320px] rounded-lg overflow-hidden border-2 border-purple-600/30 bg-gradient-to-b from-purple-900/10 to-black p-4 flex items-end">
-              <div className="w-full bg-purple-700/30 rounded-t-lg p-4 text-center">
-                <h3 className="text-xl font-semibold text-white mb-2">Cinematic Virtual Reality</h3>
-                <div className="w-3/4 h-[2px] bg-white/20 mx-auto mb-2" />
-                <p className="text-sm text-gray-300">
-                  Let's be the best for more real and effective results and ready to explore and learn the content we have prepared for you.
-                </p>
-              </div>
+            {/* Mobile Menu Toggle */}
+            <div className="md:hidden">
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="text-white hover:text-[#d946ef] transition-colors"
+              >
+                {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
             </div>
           </div>
         </div>
-      </div>
-    </section>
-  );
 
-  // About Section
-  const AboutSection = () => (
-    <Box sx={{ py: 10, backgroundColor: '#0a0a0a' }}>
-      <Container maxWidth="lg">
-        <Grid container spacing={4} alignItems="center">
-          <Grid item xs={12} md={6}>
-            <Box
-              sx={{
-                width: '100%',
-                height: { xs: '300px', md: '400px' },
-                borderRadius: '12px',
-                overflow: 'hidden',
-                border: '2px solid rgba(139, 92, 246, 0.3)',
-                background: 'linear-gradient(135deg, rgba(217, 70, 239, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Typography variant="h5" sx={{ color: 'rgba(255, 255, 255, 0.5)' }}>
-                VR Experience Image
-              </Typography>
-            </Box>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Typography variant="h3" sx={{ fontWeight: 700, mb: 3 }}>
-              New Experience In Playing Game
-            </Typography>
-            <Typography
-              variant="body1"
-              sx={{
-                color: 'rgba(255, 255, 255, 0.7)',
-                mb: 4,
-                lineHeight: 1.8,
-              }}
-            >
-              You can try playing the game with a new style and of course a more real feel, like you are the main character in your game and can feel a more real experience in the new digital world.
-            </Typography>
-            <Button
-              variant="contained"
-              sx={{
-                backgroundColor: '#d946ef',
-                textTransform: 'capitalize',
-                px: 4,
-                py: 1.5,
-                borderRadius: '8px',
-                '&:hover': { backgroundColor: '#c026d3' },
-              }}
-            >
-              Get It Now
-            </Button>
-          </Grid>
-        </Grid>
-      </Container>
-    </Box>
-  );
-
-  // Features Section
-  const FeaturesSection = () => {
-    const features = [
-      {
-        icon: <RestaurantMenuIcon sx={{ fontSize: 40 }} />,
-        title: 'Diverse Menu',
-        description: 'Explore a wide variety of cuisines and dishes tailored to your taste and dietary preferences.',
-      },
-      {
-        icon: <SpeedIcon sx={{ fontSize: 40 }} />,
-        title: 'Quick Service',
-        description: 'Fast ordering and delivery system ensuring you get your meals when you need them.',
-      },
-      {
-        icon: <LocalOfferIcon sx={{ fontSize: 40 }} />,
-        title: 'Best Prices',
-        description: 'Affordable pricing with exclusive deals and offers for students and staff members.',
-      },
-      {
-        icon: <SecurityIcon sx={{ fontSize: 40 }} />,
-        title: 'Secure Payment',
-        description: 'Multiple secure payment options including digital wallets and cards for convenient transactions.',
-      },
-    ];
-
-    return (
-      <Box sx={{ py: 10, backgroundColor: '#0f0f0f' }}>
-        <Container maxWidth="lg">
-          <Box sx={{ textAlign: 'center', mb: 8 }}>
-            <Typography variant="h3" sx={{ fontWeight: 700, mb: 2 }}>
-              Features
-            </Typography>
-            <Typography variant="h6" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-              Everything you need for a perfect dining experience
-            </Typography>
-          </Box>
-
-          {/* single horizontal row on md+; stacked on xs/sm */}
-          <Grid
-            container
-            spacing={4}
-            sx={{
-              flexWrap: { xs: 'wrap', md: 'nowrap' },
-              alignItems: 'stretch',
-            }}
-          >
-            {features.map((feature, index) => (
-              <Grid
-                item
-                key={index}
-                sx={{
-                  display: 'flex',
-                  // 100% on xs, 50% on sm, 25% on md+ to force single row
-                  width: { xs: '100%', sm: '50%', md: '25%' },
-                  maxWidth: { xs: '100%', sm: '50%', md: '25%' },
-                }}
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden bg-[#1a1a1a]/95 backdrop-blur-xl border-t border-[rgba(139,92,246,0.3)]">
+            <div className="px-4 pt-4 pb-6 space-y-4">
+              <button
+                onClick={() => scrollToSection('home')}
+                className="block w-full text-left text-white/70 hover:text-white"
               >
-                <Card
-                  sx={{
-                    width: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    minHeight: 220,
-                    backgroundColor: '#1a1a1a',
-                    border: '1px solid rgba(139, 92, 246, 0.2)',
-                    borderRadius: '12px',
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      transform: 'translateY(-8px)',
-                      borderColor: '#d946ef',
-                      boxShadow: '0 8px 24px rgba(217, 70, 239, 0.3)',
-                    },
-                  }}
-                >
-                  <CardContent sx={{ textAlign: 'center', p: 4, flexGrow: 1 }}>
-                    <Box sx={{ color: '#d946ef', mb: 2 }}>{feature.icon}</Box>
-                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-                      {feature.title}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{ color: 'rgba(255, 255, 255, 0.7)', lineHeight: 1.6 }}
-                    >
-                      {feature.description}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
+                Home
+              </button>
+              <button
+                onClick={() => scrollToSection('about')}
+                className="block w-full text-left text-white/70 hover:text-white"
+              >
+                About
+              </button>
+              <Link
+                to="/dashboard"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="block text-white/70 hover:text-white"
+              >
+                Dashboard
+              </Link>
+              <Link
+                to="/loginadmin"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="block px-6 py-2 bg-gradient-to-r from-[#d946ef] to-[#8b5cf6] text-white rounded-full font-medium text-center hover:shadow-[0_0_20px_rgba(217,70,239,0.6)]"
+              >
+                Login
+              </Link>
+            </div>
+          </div>
+        )}
+      </nav>
+
+      <section
+        id="home"
+        className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#0a0a0a] pt-20 md:pt-24"
+        style={{ scrollMarginTop: '6rem' }}
+      >
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#d946ef]/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#8b5cf6]/20 rounded-full blur-3xl animate-pulse delay-700"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-[#d946ef]/10 to-[#8b5cf6]/10 rounded-full blur-3xl animate-spin-slow"></div>
+        </div>
+
+        <div className="absolute inset-0">
+          {[...Array(50)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-1 h-1 bg-[#d946ef] rounded-full"
+              initial={{
+                x: Math.random() * window.innerWidth,
+                y: Math.random() * window.innerHeight,
+                opacity: 0,
+              }}
+              animate={{
+                y: [null, Math.random() * window.innerHeight],
+                opacity: [0, 1, 0],
+              }}
+              transition={{
+                duration: Math.random() * 3 + 2,
+                repeat: Infinity,
+                delay: Math.random() * 2,
+              }}
+            />
+          ))}
+        </div>
+
+        <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <SplitText
+              text="Karmic Canteen System"
+              tag="h1"
+              className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold mb-6"
+              delay={80}
+              duration={0.8}
+              ease="power3.out"
+              from={{ opacity: 0, y: 40 }}
+              to={{ opacity: 1, y: 0 }}
+              onLetterAnimationComplete={handleAnimationComplete}
+            />
+          </motion.div>
+
+          <motion.p
+            className="text-xl sm:text-2xl md:text-3xl text-white/70 mb-12 max-w-3xl mx-auto"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            Smart, Sustainable & Automated Meal Management
+          </motion.p>
+
+          {/* Orb visual - full width canvas */}
+          <div className="w-full h-[420px] mb-8 rounded-3xl overflow-hidden" style={{ position: 'relative' }}>
+            <Orb hue={260} hoverIntensity={0.5} rotateOnHover={true} forceHoverState={false} />
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
+            <button
+              onClick={scrollToFeatures}
+              className="group relative px-8 py-4 bg-gradient-to-r from-[#d946ef] to-[#8b5cf6] text-white text-lg font-semibold rounded-full overflow-hidden hover:shadow-[0_0_30px_rgba(217,70,239,0.8)] transition-all duration-300 hover:scale-105"
+            >
+              <span className="relative z-10 flex items-center gap-2">
+                Get Started
+                <ArrowDown className="group-hover:translate-y-1 transition-transform duration-300" />
+              </span>
+              <div className="absolute inset-0 bg-gradient-to-r from-[#c026d3] to-[#7c3aed] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            </button>
+          </motion.div>
+        </div>
+
+        <style>{`
+          @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+          }
+          .animate-gradient {
+            animation: gradient 3s ease infinite;
+          }
+          @keyframes spin-slow {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+          }
+          .animate-spin-slow {
+            animation: spin-slow 20s linear infinite;
+          }
+        `}</style>
+      </section>
+
+      <section id="about" className="relative py-20 bg-[#0a0a0a] overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#d946ef]/5 to-transparent"></div>
+
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-[#d946ef] to-[#8b5cf6] bg-clip-text text-transparent">
+              Why Choose Karmic Canteen?
+            </h2>
+            <p className="text-lg text-white/70 max-w-2xl mx-auto">
+              Experience the future of canteen management with intelligent automation,
+              sustainability tracking, and seamless operations.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+            {features.map((feature, index) => (
+              <motion.div
+                key={index}
+                className="group relative p-8 bg-[#1a1a1a] rounded-2xl border border-[rgba(139,92,246,0.3)] hover:border-[#d946ef] transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(217,70,239,0.3)]"
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.2 }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-[#d946ef]/10 to-[#8b5cf6]/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+                <div className="relative z-10">
+                  <div
+                    className={`inline-block p-4 bg-gradient-to-r ${feature.gradient} rounded-xl mb-6 group-hover:shadow-[0_0_30px_rgba(217,70,239,0.6)] transition-all duration-300`}
+                  >
+                    <div className="text-white">{feature.icon}</div>
+                  </div>
+
+                  <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-[#d946ef] group-hover:to-[#8b5cf6] group-hover:bg-clip-text transition-all duration-300">
+                    {feature.title}
+                  </h3>
+
+                  <p className="text-white/70 leading-relaxed">{feature.description}</p>
+                </div>
+
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-[#d946ef]/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              </motion.div>
             ))}
-          </Grid>
-        </Container>
-      </Box>
-    );
-  };
+          </div>
 
-  // Footer
-  const Footer = () => (
-    <Box
-      sx={{
-        py: 6,
-        backgroundColor: '#0a0a0a',
-        borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-      }}
-    >
-      <Container maxWidth="lg">
-        <Grid container spacing={4}>
-          <Grid item xs={12} md={4}>
-            <Typography
-              variant="h5"
-              sx={{
-                fontWeight: 700,
-                mb: 2,
-                background: 'linear-gradient(45deg, #d946ef 30%, #8b5cf6 90%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              }}
-            >
-              Karmic Canteen
-            </Typography>
-            <Typography sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
-              Your ultimate destination for delicious meals and seamless ordering experience.
-            </Typography>
-          </Grid>
-          <Grid item xs={12} sm={6} md={2}>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-              Company
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              {['About Us', 'Careers', 'Contact'].map((item) => (
-                <Typography
-                  key={item}
-                  sx={{
-                    color: 'rgba(255, 255, 255, 0.6)',
-                    cursor: 'pointer',
-                    '&:hover': { color: '#d946ef' },
-                  }}
+          <motion.div
+            className="relative bg-[#1a1a1a] rounded-3xl p-12 border border-[rgba(139,92,246,0.3)] overflow-hidden"
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <div className="absolute top-0 right-0 w-64 h-64 bg-[#d946ef]/10 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#8b5cf6]/10 rounded-full blur-3xl"></div>
+
+            <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
+              <div className="flex-1">
+                <h3 className="text-3xl font-bold text-white mb-4">
+                  Experience the Future of{' '}
+                  <span className="bg-gradient-to-r from-[#d946ef] to-[#8b5cf6] bg-clip-text text-transparent">
+                    Canteen Management
+                  </span>
+                </h3>
+                <p className="text-white/70 mb-6 leading-relaxed">
+                  Our platform combines cutting-edge technology with sustainable practices to
+                  deliver an unparalleled canteen management experience. From automated
+                  ordering to waste reduction, we've got you covered.
+                </p>
+                <ul className="space-y-3">
+                  {[
+                    'Automated meal planning and ordering',
+                    'Real-time inventory tracking',
+                    'Sustainable waste management',
+                    'Smart payment integration',
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-center gap-3 text-white/80">
+                      <div className="w-2 h-2 bg-gradient-to-r from-[#d946ef] to-[#8b5cf6] rounded-full"></div>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="flex-1 flex items-center justify-center">
+                <div className="relative w-64 h-64 sm:w-80 sm:h-80">
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#d946ef] to-[#8b5cf6] rounded-3xl animate-pulse"></div>
+                  <div className="absolute inset-2 bg-[#0a0a0a] rounded-3xl flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="text-6xl font-bold bg-gradient-to-r from-[#d946ef] to-[#8b5cf6] bg-clip-text text-transparent mb-2">
+                        100%
+                      </div>
+                      <div className="text-white/70 text-lg">Digital</div>
+                    </div>
+                  </div>
+                  <div className="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-br from-[#d946ef] to-[#8b5cf6] rounded-full blur-xl animate-pulse"></div>
+                  <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-gradient-to-br from-[#8b5cf6] to-[#d946ef] rounded-full blur-xl animate-pulse delay-700"></div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      <footer className="relative bg-[#0a0a0a] border-t border-[rgba(139,92,246,0.3)]">
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#d946ef] via-[#8b5cf6] to-[#d946ef] animate-gradient bg-[length:200%_auto]"></div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+            <div className="col-span-1 md:col-span-2">
+              <h3 className="text-2xl font-bold bg-gradient-to-r from-[#d946ef] to-[#8b5cf6] bg-clip-text text-transparent mb-4">
+                Karmic Canteen System
+              </h3>
+              <p className="text-white/70 mb-6 max-w-md">
+                Revolutionizing canteen management with smart automation, sustainability
+                tracking, and seamless operations for a better tomorrow.
+              </p>
+              <div className="flex gap-4">
+                <a
+                  href="#"
+                  className="w-10 h-10 bg-[#1a1a1a] border border-[rgba(139,92,246,0.3)] rounded-full flex items-center justify-center text-white/70 hover:text-white hover:border-[#d946ef] hover:shadow-[0_0_20px_rgba(217,70,239,0.6)] transition-all duration-300"
                 >
-                  {item}
-                </Typography>
-              ))}
-            </Box>
-          </Grid>
-          <Grid item xs={12} sm={6} md={2}>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-              Support
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              {['Help Center', 'Safety', 'Terms'].map((item) => (
-                <Typography
-                  key={item}
-                  sx={{
-                    color: 'rgba(255, 255, 255, 0.6)',
-                    cursor: 'pointer',
-                    '&:hover': { color: '#d946ef' },
-                  }}
+                  <Github size={20} />
+                </a>
+                <a
+                  href="#"
+                  className="w-10 h-10 bg-[#1a1a1a] border border-[rgba(139,92,246,0.3)] rounded-full flex items-center justify-center text-white/70 hover:text-white hover:border-[#d946ef] hover:shadow-[0_0_20px_rgba(217,70,239,0.6)] transition-all duration-300"
                 >
-                  {item}
-                </Typography>
-              ))}
-            </Box>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-              Newsletter
-            </Typography>
-            <Typography sx={{ color: 'rgba(255, 255, 255, 0.6)', mb: 2 }}>
-              Subscribe to get special offers and updates.
-            </Typography>
-            <Button
-              variant="contained"
-              fullWidth
-              sx={{
-                backgroundColor: '#d946ef',
-                '&:hover': { backgroundColor: '#c026d3' },
-              }}
-            >
-              Subscribe
-            </Button>
-          </Grid>
-        </Grid>
-        <Box
-          sx={{
-            mt: 6,
-            pt: 4,
-            borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-            textAlign: 'center',
-          }}
-        >
-          <Typography sx={{ color: 'rgba(255, 255, 255, 0.5)' }}>
-            © 2025 Karmic Canteen. All rights reserved.
-          </Typography>
-        </Box>
-      </Container>
-    </Box>
-  );
+                  <Twitter size={20} />
+                </a>
+                <a
+                  href="#"
+                  className="w-10 h-10 bg-[#1a1a1a] border border-[rgba(139,92,246,0.3)] rounded-full flex items-center justify-center text-white/70 hover:text-white hover:border-[#d946ef] hover:shadow-[0_0_20px_rgba(217,70,239,0.6)] transition-all duration-300"
+                >
+                  <Linkedin size={20} />
+                </a>
+                <a
+                  href="#"
+                  className="w-10 h-10 bg-[#1a1a1a] border border-[rgba(139,92,246,0.3)] rounded-full flex items-center justify-center text-white/70 hover:text-white hover:border-[#d946ef] hover:shadow-[0_0_20px_rgba(217,70,239,0.6)] transition-all duration-300"
+                >
+                  <Mail size={20} />
+                </a>
+              </div>
+            </div>
 
-  return (
-    <ThemeProvider theme={darkTheme}>
-      <CssBaseline />
-      <Box sx={{ backgroundColor: '#0a0a0a', minHeight: '100vh' }}>
-        <Navbar />
-        <Toolbar /> {/* spacer to offset fixed AppBar */}
-        <SideDrawer />
-        <HeroSection />
-        <AboutSection />
-        <FeaturesSection />
-        <Footer />
-      </Box>
-    </ThemeProvider>
-  );
-}
+            <div>
+              <h4 className="text-white font-semibold mb-4">Quick Links</h4>
+              <ul className="space-y-2">
+                <li>
+                  <a
+                    href="#home"
+                    className="text-white/70 hover:text-white hover:pl-2 transition-all duration-300 inline-block"
+                  >
+                    Home
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#about"
+                    className="text-white/70 hover:text-white hover:pl-2 transition-all duration-300 inline-block"
+                  >
+                    About
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="text-white/70 hover:text-white hover:pl-2 transition-all duration-300 inline-block"
+                  >
+                    Features
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="text-white/70 hover:text-white hover:pl-2 transition-all duration-300 inline-block"
+                  >
+                    Contact
+                  </a>
+                </li>
+              </ul>
+            </div>
 
-export default AdminHomepage;
+            <div>
+              <h4 className="text-white font-semibold mb-4">Resources</h4>
+              <ul className="space-y-2">
+                <li>
+                  <a
+                    href="#"
+                    className="text-white/70 hover:text-white hover:pl-2 transition-all duration-300 inline-block"
+                  >
+                    Documentation
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="text-white/70 hover:text-white hover:pl-2 transition-all duration-300 inline-block"
+                  >
+                    API Reference
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="text-white/70 hover:text-white hover:pl-2 transition-all duration-300 inline-block"
+                  >
+                    Support
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="text-white/70 hover:text-white hover:pl-2 transition-all duration-300 inline-block"
+                  >
+                    Privacy Policy
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="pt-8 border-t border-[rgba(139,92,246,0.3)] text-center">
+            <p className="text-white/60">
+              © {currentYear} Karmic Canteen System. All rights reserved.
+            </p>
+            <p className="text-white/50 text-sm mt-2">
+              Built with innovation, powered by sustainability
+            </p>
+          </div>
+        </div>
+
+        <style>{`
+          @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+          }
+          .animate-gradient {
+            animation: gradient 3s ease infinite;
+          }
+        `}</style>
+      </footer>
+    </div>
+  );
+};
+
+export default AdminHomePage;
