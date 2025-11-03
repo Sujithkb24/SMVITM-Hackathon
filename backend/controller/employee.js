@@ -60,7 +60,7 @@ exports.loginEmployee = async (req, res) => {
       message: "Login successful",
       token,
       employee: {
-        id: employee._id,
+        id: employee._id.toString(),
         name: employee.name,
         email: employee.email,
         phoneNumber: employee.phoneNumber,
