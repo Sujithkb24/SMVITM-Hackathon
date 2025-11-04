@@ -229,3 +229,22 @@ exports.verifyEmployeeQR = async (req, res) => {
     });
   }
 };
+
+// Get all employees
+exports.getAllEmployees = async (req, res) => {
+  try {
+    const employees = await Employee.find().select("-password"); // Exclude password from results
+    
+    return res.status(200).json({
+      success: true,
+      message: "All employees retrieved successfully",
+      count: employees.length,
+      employees: employees
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      error: err.message
+    });
+  }
+};

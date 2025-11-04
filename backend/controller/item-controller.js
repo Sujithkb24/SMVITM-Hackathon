@@ -60,4 +60,74 @@ const getAllItems = async(req, res) => {
     }
 }
 
-module.exports = { addItem, getItemsByDay, getAllItems };
+// Update item by ID
+const updateItem = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, description, serving_day, type } = req.body;
+
+        // Check if item exists
+        const item = await Item.findById(id);
+        if (!item) {
+            return res.status(404).json({ error: "Item not found" });
+        }
+
+        // Check if another item with the same name and serving_day already exists (excluding current item)
+        if (name && serving_day) {
+            const duplicate = await Item.findOne({ 
+                name, 
+                serving_day,
+                _id: { $ne: id } // Exclude current item from check
+            });
+            if (duplicate) {
+                return res.status(400).json({ error: "Item with this name already exists for the given serving day" });
+            }
+        }
+
+        // Update item
+        const updatedItem = await Item.findByIdAndUpdate(
+            id,
+            { name, description, serving_day, type },
+            { new: true, runValidators: true } // Return updated document and run schema validators
+        );
+
+        return res.status(200).json({ 
+            message: "Item updated successfully", 
+            item: updatedItem 
+        });
+    } catch (err) {
+        return res.status(500).json({ error: err.message });
+    }
+};
+
+// Delete item by ID
+const deleteItem = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Check if item exists
+        const item = await Item.findById(id);
+        if (!item) {
+            return res.status(404).json({ error: "Item not found" });
+        }
+
+        // Delete item
+        await Item.findByIdAndDelete(id);
+
+        return res.status(200).json({ 
+            message: "Item deleted successfully",
+            deletedItem: item 
+        });
+    } catch (err) {
+        return res.status(500).json({ error: err.message });
+    }
+};
+
+
+module.exports = { 
+    addItem, 
+    getItemsByDay, 
+    getAllItems, 
+    updateItem, 
+    deleteItem 
+};
